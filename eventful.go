@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 type Client struct {
@@ -53,6 +54,7 @@ type Event struct {
 	Longitude   string     `json:"longitude""`
 	CityName    string     `json:"city_name""`
 	Description string     `json:"description""`
+	Created string `json:"created"`
 	Image       *ImageInfo `json:"image""`
 }
 
@@ -73,11 +75,16 @@ func New(apikey string) *Client {
 	return &Client{APIKey: apikey}
 }
 
-func (client *Client) SearchEvents(srch string, date string) (*SearchEventsResponse, error) {
+func (client *Client) SearchEvents(srch string, date string, location string, within int, sort string) (*SearchEventsResponse, error) {
 	var clean SearchEventsResponse
 	var data RawSearchEventsResponse
 
-	url := fmt.Sprintf("http://api.eventful.com/json/events/search?app_key=%s&date=%s&keywords=%s", url.QueryEscape(client.APIKey), url.QueryEscape(date), url.QueryEscape(srch))
+	if len(date) < 1 {
+		date = "&date=" + date
+	} else {
+		date = ""
+	}
+	url := fmt.Sprintf("http://api.eventful.com/json/events/search?app_key=%s%s&keywords=%s&location=%s&within=%s&sort_order=%s", url.QueryEscape(client.APIKey), url.QueryEscape(date), url.QueryEscape(srch), url.QueryEscape(location), strconv.Itoa(within), sort)
 	println(url)
 	resp, err := http.Get(url)
 
